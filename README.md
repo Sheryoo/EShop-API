@@ -27,9 +27,6 @@ v18.15.0
   - [Installation](#installation)
   - [Usage](#usage)
     - [Serving the app](#serving-the-app)
-    - [Running the tests](#running-the-tests)
-    - [Building a distribution version](#building-a-distribution-version)
-    - [Serving the distribution version](#serving-the-distribution-version)
   - [Built With](#built-with)
   - [Authors](#authors)
   - [License](#license)
@@ -45,8 +42,8 @@ These instructions will get you a copy of the project up and running on your loc
 Start with cloning this repo on your local machine:
 
 ```sh
-$ git clone https://github.com/ORG/PROJECT.git
-$ cd PROJECT
+$ git clone https://github.com/Sheryoo/EShop-API.git
+$ cd EShop-API
 ```
 
 To install and set up the library, run:
