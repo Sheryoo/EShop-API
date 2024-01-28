@@ -34,10 +34,6 @@ app.use(`${API}/orders`, orderRouter);
 app.use('/public/uploads', express.static(__dirname+'/public/uploads'));
 
 
-app.get(`${API}/`, (req, res) => {
-  res.status(200).send("Main Page !!");
-});
-
 app.listen(3030, () => {
   console.log("The server is running on : http://localhost:3030/api/v1/");
 });

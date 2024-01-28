@@ -7,16 +7,28 @@ router
   .get(`/`, async (req, res) => {
     const users = await User.find().select("name phone email");
     if (!users) {
-      res.status(500).json("No users In Your List");
+      res.json({ status: false, message: "No users in your list", data: null });
     }
-    res.status(200).json(users);
+    res.json({
+      status: true,
+      message: "Users fetched successfully",
+      data: users,
+    });
   })
   .get(`/:id`, async (req, res) => {
     const user = await User.findById(req.params.id).select("name phone email");
     if (!user) {
-      return res.status(400).json("User Not Found !!!");
+      return res.json({
+        status: false,
+        message: "User Not Found",
+        data: null,
+      });
     }
-    return res.status(200).json(user);
+    return res.json({
+      status: true,
+      message: "User fetched successfully",
+      data: user,
+    });
   })
   .post("/register", async (req, res) => {
     const salt = await bcrycpt.genSalt(10);
@@ -37,10 +49,18 @@ router
     user
       .save()
       .then((createdUser) => {
-        res.status(200).json({ createdUser: createdUser });
+        res.json({
+          status: true,
+          message: "User created successfully",
+          data: createdUser,
+        });
       })
       .catch((err) => {
-        res.status(403).json(err);
+        res.json({
+          status: false,
+          message: "Something went wrong",
+          data: null,
+        });
       });
   })
   .post("/login", async (req, res) => {
@@ -54,23 +74,34 @@ router
           isAdmin: user.isAdmin,
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
-          expiresIn: "1d",
+          expiresIn: "30d",
         });
-
-        res.status(200).json(token);
+        res.json({
+          status: true,
+          message: "User logged in successfully",
+          data: token,
+        });
       } else {
-        res.status(401).json({ message: "Password is incorrect !!!" });
+        res.json({
+          status: false,
+          message: "Wrong Password",
+          data: null,
+        });
       }
     } else {
-      res.status(401).json({ message: "User not found !!!" });
+      res.json({
+        status: false,
+        message: "User Not Found",
+        data: null,
+      });
     }
   })
   .get("/get/count", async (req, res) => {
     const count = await User.countDocuments();
     if (!count) {
-      res.status(500).json("No Users In Your List");
+      res.json({ "Users Count": 0 });
     }
-    res.status(200).json({ "Users Count": count });
+    res.json({ "Users Count": count });
   });
 
 module.exports = router;
