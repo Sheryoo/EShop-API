@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const { Order } = require("../models/Order");
 const { OrderItem } = require("../models/Order-Items");
-const authJwt = require("../helpers/JWT_Auth");
-
+const adminAuth = require("../helpers/JWT_Admin_Auth");
+const userAuth = require("../helpers/jwt_User_Auth");
 
 router
-  .get(`/`,authJwt, async (req, res) => {
+  .get(`/`, userAuth, async (req, res) => {
     const orders = await Order.find()
       .populate("user", "name")
       .sort("dateOrdered");
@@ -14,7 +14,7 @@ router
     }
     res.status(200).json(orders);
   })
-  .get(`/:id`,authJwt, async (req, res) => {
+  .get(`/:id`, userAuth, async (req, res) => {
     const order = await Order.findById(req.params.id)
       .populate("user", "name")
       .populate({
@@ -27,7 +27,7 @@ router
     }
     res.status(200).json(order);
   })
-  .post("/",authJwt, async (req, res) => {
+  .post("/", userAuth, async (req, res) => {
     const orderItemsIds = Promise.all(
       req.body.orderItems.map(async (orderItem) => {
         let newOrderItem = new OrderItem({
@@ -74,7 +74,7 @@ router
 
     res.send(order);
   })
-  .put("/update/:id",authJwt, async (req, res) => {
+  .put("/update/:id", userAuth, async (req, res) => {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       {
@@ -85,7 +85,7 @@ router
     if (!order) return res.status(400).send("the order cannot be created!");
     res.status(200).send(order);
   })
-  .delete("/:id",authJwt, async (req, res) => {
+  .delete("/:id", userAuth, async (req, res) => {
     Order.findByIdAndDelete(req.params.id).then(async (order) => {
       if (order) {
         await order.orderItems.map(async (orderItem) => {
@@ -97,7 +97,7 @@ router
       }
     });
   })
-  .get("/get/totalsales",authJwt, async (req, res) => {
+  .get("/get/totalsales", userAuth, async (req, res) => {
     const totalSales = await Order.aggregate([
       {
         $group: {
@@ -111,14 +111,14 @@ router
     }
     res.status(200).json({ totalSales: totalSales.pop().totalSales });
   })
-  .get("/get/count",authJwt, async (req, res) => {
+  .get("/get/count", userAuth, async (req, res) => {
     const orderCount = await Order.countDocuments();
     if (!orderCount) {
       return res.status(500).json("No Orders In Your List");
     }
     res.status(200).json({ "orders Count": orderCount });
   })
-  .get("/get/userorders/:userId",authJwt, async (req, res) => {
+  .get("/get/userorders/:userId", adminAuth, async (req, res) => {
     const userOrders = await Order.find({ user: req.params.userId })
       .populate("user", "name")
       .sort("dateOrdered");
