@@ -10,7 +10,6 @@ const productRouter = require("./routes/products");
 const userRouter = require("./routes/users");
 const categoryRouter = require("./routes/categories");
 const orderRouter = require("./routes/orders");
-const authJwt = require("./helpers/JWT_Auth");
 const errorHandler = require("./helpers/error-handler");
 
 const API = process.env.API_URI;
@@ -24,7 +23,6 @@ mongoose.connection.once("open", () => {
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
-app.use(authJwt);
 app.use(errorHandler);
 
 app.use(`${API}/products`, productRouter);

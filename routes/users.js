@@ -2,9 +2,10 @@ const router = require("express").Router();
 const { User } = require("../models/User");
 const bcrycpt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const authJwt = require("../helpers/JWT_Auth");
 
 router
-  .get(`/`, async (req, res) => {
+  .get(`/`, authJwt, async (req, res) => {
     const users = await User.find().select("name phone email");
     if (!users) {
       res.json({ status: false, message: "No users in your list", data: null });
@@ -15,7 +16,7 @@ router
       data: users,
     });
   })
-  .get(`/:id`, async (req, res) => {
+  .get(`/:id`, authJwt, async (req, res) => {
     const user = await User.findById(req.params.id).select("name phone email");
     if (!user) {
       return res.json({
@@ -49,10 +50,18 @@ router
     user
       .save()
       .then((createdUser) => {
+        const payload = {
+          userId: user.id,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+          expiresIn: "30d",
+        });
         res.json({
           status: true,
           message: "User created successfully",
-          data: createdUser,
+          data: { token: token, user: createdUser },
         });
       })
       .catch((err) => {
@@ -96,7 +105,7 @@ router
       });
     }
   })
-  .get("/get/count", async (req, res) => {
+  .get("/get/count", authJwt, async (req, res) => {
     const count = await User.countDocuments();
     if (!count) {
       res.json({ "Users Count": 0 });

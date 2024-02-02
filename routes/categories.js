@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { Category } = require("../models/Category");
+const authJwt = require("../helpers/JWT_Auth");
 
 router
   .get(`/all`, async (req, res) => {
