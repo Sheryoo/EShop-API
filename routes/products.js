@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
 const uploadOptions = multer({ storage: storage });
 
 router
-  .get("/",authJwt, async (req, res) => {
+  .get("/", async (req, res) => {
     let filter = {};
 
     if (req.query.categories) {
@@ -45,7 +45,7 @@ router
 
     res.status(200).json(products);
   })
-  .get("/:id",authJwt, async (req, res) => {
+  .get("/:id", async (req, res) => {
     const product = await Product.findById(req.params.id).populate("category");
 
     if (!product) {
@@ -135,7 +135,7 @@ router
         return res.status(500).json(err);
       });
   })
-  .get("/get/count",authJwt, async (req, res) => {
+  .get("/get/count", async (req, res) => {
     const count = await Product.countDocuments();
 
     if (!count) {
@@ -144,7 +144,7 @@ router
 
     res.status(200).json({ count: count });
   })
-  .get("/get/featured/:count",authJwt, async (req, res) => {
+  .get("/get/featured/:count", async (req, res) => {
     const count = req.params.count ? req.params.count : 0;
     const products = await Product.find({ isFeatured: true }).limit(count);
 

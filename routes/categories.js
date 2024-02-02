@@ -17,7 +17,7 @@ router
     }
     res.status(200).json(category);
   })
-  .post("/", async (req, res) => {
+  .post("/", authJwt, async (req, res) => {
     let category = new Category({
       name: req.body.name,
       icon: req.body.icon,
@@ -29,7 +29,7 @@ router
     }
     res.status(200).json(newCategory);
   })
-  .delete("/:id", async (req, res) => {
+  .delete("/:id", authJwt, async (req, res) => {
     Category.findByIdAndDelete(req.params.id)
       .then((category) => {
         if (category) {
@@ -42,7 +42,7 @@ router
         return res.status(500).json(err);
       });
   })
-  .put("/:id", async (req, res) => {
+  .put("/:id", authJwt, async (req, res) => {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       {
