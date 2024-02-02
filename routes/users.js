@@ -2,10 +2,11 @@ const router = require("express").Router();
 const { User } = require("../models/User");
 const bcrycpt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const authJwt = require("../helpers/JWT_Auth");
+const adminAuth = require("../helpers/JWT_Admin_Auth");
+const userAuth = require("../helpers/jwt_User_Auth");
 
 router
-  .get(`/`, authJwt, async (req, res) => {
+  .get(`/`, adminAuth, async (req, res) => {
     const users = await User.find().select("name phone email");
     if (!users) {
       res.json({ status: false, message: "No users in your list", data: null });
@@ -16,7 +17,7 @@ router
       data: users,
     });
   })
-  .get(`/:id`, authJwt, async (req, res) => {
+  .get(`/:id`, userAuth, async (req, res) => {
     const user = await User.findById(req.params.id).select("name phone email");
     if (!user) {
       return res.json({
@@ -105,7 +106,7 @@ router
       });
     }
   })
-  .get("/get/count", authJwt, async (req, res) => {
+  .get("/get/count", adminAuth, async (req, res) => {
     const count = await User.countDocuments();
     if (!count) {
       res.json({ "Users Count": 0 });

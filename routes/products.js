@@ -3,7 +3,8 @@ const { default: mongoose } = require("mongoose");
 const { Category } = require("../models/Category");
 const Product = require("../models/Product");
 const multer = require("multer");
-const authJwt = require("../helpers/JWT_Auth");
+const adminAuth = require("../helpers/JWT_Admin_Auth");
+const userAuth = require("../helpers/jwt_User_Auth");
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -30,7 +31,7 @@ const storage = multer.diskStorage({
 const uploadOptions = multer({ storage: storage });
 
 router
-  .get("/", async (req, res) => {
+  .get("/", userAuth, async (req, res) => {
     let filter = {};
 
     if (req.query.categories) {
@@ -45,7 +46,7 @@ router
 
     res.status(200).json(products);
   })
-  .get("/:id", async (req, res) => {
+  .get("/:id", userAuth, async (req, res) => {
     const product = await Product.findById(req.params.id).populate("category");
 
     if (!product) {
@@ -54,7 +55,7 @@ router
 
     res.status(200).json(product);
   })
-  .post("/",authJwt, uploadOptions.single("image"), async (req, res) => {
+  .post("/", adminAuth, uploadOptions.single("image"), async (req, res) => {
     const category = await Category.findById(req.body.category);
 
     if (!category) {
@@ -96,7 +97,7 @@ router
         res.status(403).json(err);
       });
   })
-  .put("/:id",authJwt, async (req, res) => {
+  .put("/:id", adminAuth, async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       {
@@ -121,7 +122,7 @@ router
 
     res.status(200).json(product);
   })
-  .delete("/:id",authJwt, async (req, res) => {
+  .delete("/:id", adminAuth, async (req, res) => {
     Product.findByIdAndRemove(req.params.id)
       .then((product) => {
         if (product) {
@@ -135,7 +136,7 @@ router
         return res.status(500).json(err);
       });
   })
-  .get("/get/count", async (req, res) => {
+  .get("/get/count", userAuth, async (req, res) => {
     const count = await Product.countDocuments();
 
     if (!count) {
@@ -144,7 +145,7 @@ router
 
     res.status(200).json({ count: count });
   })
-  .get("/get/featured/:count", async (req, res) => {
+  .get("/get/featured/:count", userAuth, async (req, res) => {
     const count = req.params.count ? req.params.count : 0;
     const products = await Product.find({ isFeatured: true }).limit(count);
 
@@ -153,32 +154,37 @@ router
     }
     res.status(200).json(products);
   })
-  .put("/upload/:id",authJwt, uploadOptions.array("images", 10), async (req, res) => {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json("Invalid Product Id !!!");
+  .put(
+    "/upload/:id",
+    adminAuth,
+    uploadOptions.array("images", 10),
+    async (req, res) => {
+      if (!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json("Invalid Product Id !!!");
+      }
+
+      const basePath = `${req.protocol}://${req.get("host")}/public/uploads`;
+
+      const files = req.files;
+      let imagesPaths = [];
+      if (files) {
+        files.map((file) => {
+          imagesPaths.push(`${basePath}/${file.filename}`);
+        });
+      }
+      const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        {
+          images: imagesPaths,
+        },
+        { new: true }
+      );
+
+      if (!product) {
+        return res.status(403).json("Product Not Found !!!");
+      }
+
+      res.send({ product: product });
     }
-
-    const basePath = `${req.protocol}://${req.get("host")}/public/uploads`;
-
-    const files = req.files;
-    let imagesPaths = [];
-    if (files) {
-      files.map((file) => {
-        imagesPaths.push(`${basePath}/${file.filename}`);
-      });
-    }
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      {
-        images: imagesPaths,
-      },
-      { new: true }
-    );
-
-    if (!product) {
-      return res.status(403).json("Product Not Found !!!");
-    }
-
-    res.send({ product: product });
-  });
+  );
 module.exports = router;

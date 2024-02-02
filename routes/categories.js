@@ -1,23 +1,23 @@
 const router = require("express").Router();
 const { Category } = require("../models/Category");
-const authJwt = require("../helpers/JWT_Auth");
-
+const adminAuth = require("../helpers/JWT_Admin_Auth");
+const userAuth = require("../helpers/jwt_User_Auth");
 router
-  .get(`/all`, async (req, res) => {
+  .get(`/all`, userAuth, async (req, res) => {
     const categories = await Category.find();
     if (!categories) {
       res.status(403).json("No categories In Your List");
     }
     res.status(200).json(categories);
   })
-  .get(`/:id`, async (req, res) => {
+  .get(`/:id`, userAuth, async (req, res) => {
     const category = await Category.findById(req.params.id);
     if (!category) {
       res.status(403).json("Category Not Found !!!");
     }
     res.status(200).json(category);
   })
-  .post("/", authJwt, async (req, res) => {
+  .post("/", adminAuth, async (req, res) => {
     let category = new Category({
       name: req.body.name,
       icon: req.body.icon,
@@ -29,7 +29,7 @@ router
     }
     res.status(200).json(newCategory);
   })
-  .delete("/:id", authJwt, async (req, res) => {
+  .delete("/:id", adminAuth, async (req, res) => {
     Category.findByIdAndDelete(req.params.id)
       .then((category) => {
         if (category) {
@@ -42,7 +42,7 @@ router
         return res.status(500).json(err);
       });
   })
-  .put("/:id", authJwt, async (req, res) => {
+  .put("/:id", adminAuth, async (req, res) => {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       {
