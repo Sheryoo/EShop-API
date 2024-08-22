@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const productScheme = new mongoose.Schema({
+const productScheme = new Schema({
   name: {
     type: String,
     require: true,
@@ -33,7 +33,7 @@ const productScheme = new mongoose.Schema({
     default: 0,
   },
   category: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "Category",
     required: true,
   },
@@ -61,12 +61,13 @@ const productScheme = new mongoose.Schema({
   },
 });
 
-productScheme.virtual('id').get(function () {
-  return this._id.toHexString()
-})
-productScheme.set('toJSON', {
-  virtuals: true
-})
+productScheme.virtual("id").get(function () {
+  return this._id.toHexString();
+});
+productScheme.set("toJSON", {
+  virtuals: true,
+});
 
-const Product = mongoose.model("Product", productScheme);
-module.exports = Product;
+export const Product = model("Product", productScheme);
+
+export default Product;

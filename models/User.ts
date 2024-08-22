@@ -1,18 +1,31 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const userScheme = new mongoose.Schema({
-  name: {
+const userScheme = new Schema({
+  firstName: {
     type: String,
     required: true,
-    unique: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
   },
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
     required: true,
+  },
+  image: {
+    type: String,
+    default: "https://cdn-icons-png.freepik.com/512/3033/3033143.png",
+  },
+  gender: {
+    type: String,
+    required: true,
+    enum: ["M", "F", "O"],
   },
   phone: {
     type: String,
@@ -22,7 +35,7 @@ const userScheme = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  street: {
+  zip: {
     type: String,
     default: "",
   },
@@ -30,11 +43,11 @@ const userScheme = new mongoose.Schema({
     type: String,
     default: "",
   },
-  city: {
+  street: {
     type: String,
     default: "",
   },
-  zip: {
+  city: {
     type: String,
     default: "",
   },
@@ -52,4 +65,6 @@ userScheme.set("toJSON", {
   virtuals: true,
 });
 
-exports.User = mongoose.model("User", userScheme);
+export const User = model("User", userScheme);
+
+export default User;

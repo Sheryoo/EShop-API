@@ -3,20 +3,7 @@
 
 # EShop-API
 
-> This is full API for Eshop using node.js and MongoDB
-
-## Prerequisites
-
-This project requires NodeJS (version 18 or later) and NPM.
-[Node](http://nodejs.org/) and [NPM](https://npmjs.org/) are really easy to install.
-To make sure you have them available on your machine,
-try running the following command.
-
-```sh
-$ npm -v && node -v
-9.5.0
-v18.15.0
-```
+> This is full API for an E-shop using node.js, typescript and MongoDB
 
 ## Table of contents
 
@@ -30,6 +17,41 @@ v18.15.0
   - [Built With](#built-with)
   - [Authors](#authors)
   - [License](#license)
+
+## Prerequisites
+
+This project requires NodeJS (version 18 or later) and NPM.
+[Node](http://nodejs.org/) and [Yarn](https://yarnpkg.com/) are really easy to install.
+To make sure you have them available on your machine,
+try running the following command.
+
+```sh
+$ yarn -v && node -v
+1.20.0
+v18.15.0
+```
+
+### .env file requirements
+
+you must provide the following environment variables to run the application.
+
+```ts
+
+API_URI = ...
+
+ADMIN_URI = ...
+
+MONGO_URI = ...
+
+JWT_SECRET = ...
+
+CLOUDINARY_CLOUD_NAME = ...
+
+CLOUDINARY_API_KEY = ...
+
+CLOUDINARY_API_SECRET = ...
+
+```
 
 ## Getting Started
 
@@ -55,7 +77,7 @@ $ npm install
 Or if you prefer using Yarn:
 
 ```sh
-$ yarn add
+$ yarn
 ```
 
 ## Usage
@@ -74,17 +96,18 @@ $ yarn start
 
 ## Built With
 
-* Node.js 
-* Express
-* MongoDB 
-* Love
+- Node.js
+- Typescript
+- Express
+- MongoDB
+- Love ❤️
 
 ## Authors
 
-* **Sheryoo0** - *Initial work* - [Sheryoo](https://github.com/Sheryoo)
+- **Sheryoo0** - _Initial work_ - [Sheryoo](https://github.com/Sheryoo)
 
 See also the list of [contributors](https://github.com/EShop-API/contributors) who participated in this project.
 
 ## License
 
-[MIT License](https://andreasonny.mit-license.org/2019) © Sheryoo0
+[MIT License](./LICENSE) © Sheryoo0
