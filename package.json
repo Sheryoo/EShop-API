@@ -10,7 +10,8 @@
     "type:check": "tsc --noEmit",
     "build": "tsc",
     "start": "yarn build && node dist/app.js",
-    "develop": "tsc-watch --onSuccess \"node dist/app.js\""
+    "develop": "tsc-watch --onSuccess \"node dist/app.js\"",
+    "husky": "INIT_HUSKY=1 && husky"
   },
   "author": "Sheryoo0",
   "license": "MIT",

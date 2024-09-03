@@ -240,13 +240,11 @@ router.get("/get/count", userAuth, async (req: any, res) => {
         .json({ status: false, message: "No Orders In Your List", data: 0 });
     }
 
-    return res
-      .status(200)
-      .json({
-        status: true,
-        message: "Orders fetched successfully",
-        data: orderCount,
-      });
+    return res.status(200).json({
+      status: true,
+      message: "Orders fetched successfully",
+      data: orderCount,
+    });
   } catch (err) {
     return res
       .status(500)

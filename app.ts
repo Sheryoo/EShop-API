@@ -3,6 +3,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import { config } from "dotenv";
 import mongoose from "mongoose";
+import cors from "cors";
 
 // Load Environment Variables
 config();
@@ -29,6 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("common"));
+app.use(cors());
 
 // Normal User Routes
 app.use(`${API_URI}/products`, normalUserRoutes.productRouter);
