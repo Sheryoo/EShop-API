@@ -7,10 +7,25 @@ const router = Router();
 
 router.get(`/`, userAuth, async (req: any, res) => {
   try {
-    const orders = await Order.find()
+    const {
+      page = 1,
+      pageSize = 10,
+      populate = [],
+      sort = {},
+      filters = {},
+    } = req?.query;
+
+    const orders = await Order.find({ ...filters })
+      .limit(+pageSize)
+      .skip((+page - 1) * +pageSize)
       .where("user", req?.auth?.userId)
-      .populate("user", "name")
-      .sort("dateOrdered");
+      .populate([
+        ...populate,
+        ...(populate?.includes("user")
+          ? [{ path: "user", select: "name" }]
+          : []),
+      ])
+      .sort({ ...sort, dateOrdered: -1 });
 
     if (!orders) {
       return res
@@ -18,15 +33,26 @@ router.get(`/`, userAuth, async (req: any, res) => {
         .json({ status: false, message: "No orders in your list", data: null });
     }
 
+    const totalEntries = await Order.countDocuments({
+      user: req?.auth?.userId,
+    });
+
     return res.status(200).json({
       status: true,
       message: "Orders fetched successfully",
       data: orders,
+      pagination: {
+        page: +page,
+        pageSize: +pageSize,
+        totalResults: orders?.length,
+        totalEntries,
+        totalPages: Math.ceil(totalEntries / +pageSize),
+      },
     });
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

@@ -4,9 +4,14 @@ import { userAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
 
-router.get(`/all`, userAuth, async (req, res) => {
+router.get(`/all`, userAuth, async (req: any, res) => {
   try {
-    const categories = await Category.find();
+    const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
+
+    const categories = await Category?.find({ ...filters })
+      .limit(+pageSize)
+      .skip((+page - 1) * +pageSize)
+      .sort({ ...sort, dateCreated: -1 });
 
     if (!categories) {
       return res.status(403).json({
@@ -16,15 +21,24 @@ router.get(`/all`, userAuth, async (req, res) => {
       });
     }
 
+    const totalEntries = await Category?.countDocuments();
+
     return res.status(200).json({
       status: true,
       message: "Categories fetched successfully",
       data: categories,
+      pagination: {
+        page: +page,
+        pageSize: +pageSize,
+        totalResults: categories?.length,
+        totalEntries,
+        totalPages: Math.ceil(totalEntries / +pageSize),
+      },
     });
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

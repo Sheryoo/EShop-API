@@ -4,16 +4,21 @@ import { userAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
 
-router.get("/", userAuth, async (req, res) => {
+router.get("/", userAuth, async (req: any, res) => {
   try {
     let filter = {};
-    const { categories } = req.query;
+    const { categories } = req?.query;
+    const { page = 1, pageSize = 10, sort = {} } = req?.query;
 
     if (categories) {
-      filter = { category: categories.toString().split(",") };
+      filter = { category: categories?.toString()?.split(",") };
     }
 
-    const products = await Product.find(filter).populate("category");
+    const products = await Product.find(filter)
+      ?.populate("category")
+      .limit(+pageSize)
+      .skip((+page - 1) * +pageSize)
+      .sort({ ...sort, dateCreated: -1 });
 
     if (!products) {
       return res.status(500).json({
@@ -23,10 +28,19 @@ router.get("/", userAuth, async (req, res) => {
       });
     }
 
+    const totalEntries = await Product.countDocuments(filter);
+
     return res.status(200).json({
       status: true,
       message: "Products fetched successfully",
       data: products,
+      pagination: {
+        page: +page,
+        pageSize: +pageSize,
+        totalResults: products?.length,
+        totalEntries,
+        totalPages: Math.ceil(totalEntries / +pageSize),
+      },
     });
   } catch (err) {
     return res
