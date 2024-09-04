@@ -27,9 +27,9 @@ router.post(
         rating,
         numReviews,
         isFeatured,
-      } = req.body;
+      } = req?.body;
 
-      const category = await Category.findById(categoryId);
+      const category = await Category?.findById(categoryId);
 
       if (!category) {
         return res
@@ -45,7 +45,7 @@ router.post(
           .json({ status: false, message: "No File Uploaded.", data: null });
       }
 
-      const uploadedFileUrl = await uploadToCloudinary(req.file, "products");
+      const uploadedFileUrl = await uploadToCloudinary(req?.file, "products");
 
       const product = new Product({
         name: name,
@@ -61,7 +61,7 @@ router.post(
         isFeatured: isFeatured,
       });
 
-      const createdProduct = await product.save();
+      const createdProduct = await product?.save();
 
       if (!createdProduct) {
         return res.status(403).json({
@@ -79,7 +79,7 @@ router.post(
     } catch (err) {
       return res.status(500).json({
         status: false,
-        message: err,
+        message: err?.message,
         data: null,
       });
     }
@@ -88,7 +88,7 @@ router.post(
 
 router.put("/:id", adminAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req?.params;
     const {
       name,
       countInStock,
@@ -130,14 +130,14 @@ router.put("/:id", adminAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
 router.delete("/:id", adminAuth, async (req, res) => {
   try {
-    const { id } = req.params;
-    const product = await Product.findByIdAndDelete(id);
+    const { id } = req?.params;
+    const product = await Product?.findByIdAndDelete(id);
 
     if (!product) {
       return res
@@ -151,7 +151,7 @@ router.delete("/:id", adminAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -161,7 +161,7 @@ router.put(
   uploadFilesMiddleware().array("images", 10),
   async (req: any, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req?.params;
 
       if (!mongoose.isValidObjectId(id)) {
         return res
@@ -178,7 +178,7 @@ router.put(
           imagesPaths.push(uploadedFileUrl);
         }
       }
-      const product = await Product.findByIdAndUpdate(
+      const product = await Product?.findByIdAndUpdate(
         id,
         {
           images: imagesPaths,
@@ -200,7 +200,7 @@ router.put(
     } catch (err) {
       return res
         .status(500)
-        .json({ status: false, message: err.message, data: null });
+        .json({ status: false, message: err?.message, data: null });
     }
   },
 );

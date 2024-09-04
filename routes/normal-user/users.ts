@@ -11,7 +11,9 @@ const router = Router();
 
 router.get(`/:id`, userAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("name phone email");
+    const user = await User?.findById(req?.params?.id)?.select(
+      "name phone email",
+    );
 
     if (!user) {
       return res.json({
@@ -29,7 +31,7 @@ router.get(`/:id`, userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -52,8 +54,9 @@ router.post(
         zip,
         country,
       } = req?.body;
-      const salt = await bcrycpt.genSalt(10);
-      const hashedPassword = await bcrycpt.hash(password, salt);
+
+      const salt = await bcrycpt?.genSalt(10);
+      const hashedPassword = await bcrycpt?.hash(password, salt);
 
       const file = req?.file;
       let uploadedFileUrl = null;
@@ -78,14 +81,14 @@ router.post(
         image: uploadedFileUrl,
       });
 
-      const createdUser = await user.save();
+      const createdUser = await user?.save();
 
       const payload = {
-        userId: user.id,
-        email: user.email,
-        isAdmin: user.isAdmin,
+        userId: user?.id,
+        email: user?.email,
+        isAdmin: user?.isAdmin,
       };
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      const token = jwt?.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "30d",
       });
 
@@ -97,7 +100,7 @@ router.post(
     } catch (err) {
       return res.status(500).json({
         status: false,
-        message: err,
+        message: err?.message,
         data: null,
       });
     }
@@ -106,16 +109,19 @@ router.post(
 
 router.post("/login", async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req?.body?.email });
 
     if (user) {
-      const isMatch = await bcrycpt.compare(req.body.password, user.password);
+      const isMatch = await bcrycpt.compare(
+        req?.body?.password,
+        user?.password,
+      );
 
       if (isMatch) {
         const payload = {
-          userId: user.id,
-          email: user.email,
-          isAdmin: user.isAdmin,
+          userId: user?.id,
+          email: user?.email,
+          isAdmin: user?.isAdmin,
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
           expiresIn: "30d",
@@ -142,7 +148,7 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

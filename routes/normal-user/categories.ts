@@ -31,7 +31,7 @@ router.get(`/all`, userAuth, async (req, res) => {
 router.get(`/:id`, userAuth, async (req, res) => {
   try {
     const { id } = req?.params;
-    const category = await Category.findById(id);
+    const category = await Category?.findById(id);
 
     if (!category) {
       return res.status(403).json({
@@ -49,7 +49,7 @@ router.get(`/:id`, userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

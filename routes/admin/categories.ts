@@ -24,17 +24,17 @@ router.post(
           .json({ status: false, message: "No File Uploaded .", data: null });
       }
 
-      const uploadedFileUrl = await uploadToCloudinary(req.file, "icons");
+      const uploadedFileUrl = await uploadToCloudinary(req?.file, "icons");
 
       const category = new Category({
         name,
         icon: uploadedFileUrl,
         labelColor,
       });
-      const newCategory = await category.save();
+      const newCategory = await category?.save();
 
       if (!newCategory) {
-        return res.status(403).json({
+        return res.status(400).json({
           status: false,
           message: "Category not created.",
           data: null,
@@ -49,7 +49,7 @@ router.post(
     } catch (err) {
       return res
         .status(500)
-        .json({ status: false, message: err.message, data: null });
+        .json({ status: false, message: err?.message, data: null });
     }
   },
 );
@@ -57,7 +57,7 @@ router.post(
 router.delete("/:id", adminAuth, async (req, res) => {
   try {
     const { id } = req?.params;
-    const category = await Category.findByIdAndDelete(id);
+    const category = await Category?.findByIdAndDelete(id);
 
     if (!category) {
       return res
@@ -71,7 +71,7 @@ router.delete("/:id", adminAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -87,7 +87,7 @@ router.put(
       let uploadedFileUrl = null;
 
       if (file) {
-        uploadedFileUrl = await uploadToCloudinary(req.file, "icons");
+        uploadedFileUrl = await uploadToCloudinary(req?.file, "icons");
       }
 
       const category = await Category.findByIdAndUpdate(
@@ -112,7 +112,7 @@ router.put(
     } catch (err) {
       return res
         .status(500)
-        .json({ status: false, message: err.message, data: null });
+        .json({ status: false, message: err?.message, data: null });
     }
   },
 );

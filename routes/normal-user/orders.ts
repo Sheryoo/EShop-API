@@ -58,7 +58,7 @@ router.get(`/:id`, userAuth, async (req: any, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -74,7 +74,8 @@ router.post("/", userAuth, async (req: any, res) => {
       country,
       phone,
       status,
-    } = req.body;
+    } = req?.body;
+
     const orderItemsIds = Promise.all(
       orderItems.map(async (orderItem) => {
         let newOrderItem = new OrderItem({
@@ -91,7 +92,7 @@ router.post("/", userAuth, async (req: any, res) => {
 
     const totalPrices = await Promise.all(
       orderItemsIdsResolved.map(async (orderItemId) => {
-        const orderItem: any = await OrderItem.findById(orderItemId).populate(
+        const orderItem: any = await OrderItem?.findById(orderItemId).populate(
           "product",
           "price",
         );
@@ -144,7 +145,7 @@ router.put("/update/:id", userAuth, async (req, res) => {
     const { id } = req?.params;
     const { status } = req?.body;
 
-    const order = await Order.findByIdAndUpdate(
+    const order = await Order?.findByIdAndUpdate(
       id,
       {
         status,
@@ -165,7 +166,7 @@ router.put("/update/:id", userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -194,13 +195,13 @@ router.delete("/:id", userAuth, async (req: any, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
 router.get("/get/total-sales", userAuth, async (req, res) => {
   try {
-    const totalSales = await Order.aggregate([
+    const totalSales = await Order?.aggregate([
       {
         $group: {
           _id: null,
@@ -218,18 +219,18 @@ router.get("/get/total-sales", userAuth, async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Total Sales Fetched Successfully",
-      data: totalSales.pop().totalSales,
+      data: totalSales?.pop()?.totalSales,
     });
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
 router.get("/get/count", userAuth, async (req: any, res) => {
   try {
-    const orderCount = await Order.countDocuments().where(
+    const orderCount = await Order?.countDocuments()?.where(
       "user",
       req?.auth?.userId,
     );
@@ -248,7 +249,7 @@ router.get("/get/count", userAuth, async (req: any, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

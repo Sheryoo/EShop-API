@@ -31,7 +31,7 @@ router.get("/", userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
@@ -55,13 +55,13 @@ router.get("/:id", userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
 router.get("/get/count", userAuth, async (req, res) => {
   try {
-    const count = await Product.countDocuments();
+    const count = await Product?.countDocuments();
 
     if (!count) {
       return res.status(500).json({
@@ -79,14 +79,14 @@ router.get("/get/count", userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
 router.get("/get/featured/:count", userAuth, async (req, res) => {
   try {
-    const count = req.params.count ? parseInt(req.params.count) : 0;
-    const products = await Product.find({ isFeatured: true }).limit(count);
+    const count = req?.params?.count ? parseInt(req?.params?.count) : 0;
+    const products = await Product?.find({ isFeatured: true })?.limit(count);
 
     if (!products) {
       return res.status(500).json({
@@ -104,7 +104,7 @@ router.get("/get/featured/:count", userAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 

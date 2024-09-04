@@ -23,7 +23,7 @@ router.get(`/search`, adminAuth, async (req: Request, res: Response) => {
 
 router.get("/get/count", adminAuth, async (req, res) => {
   try {
-    const count = await User.countDocuments();
+    const count = await User?.countDocuments();
 
     if (!count) {
       res.json({ status: false, message: "No users in your list", data: 0 });
@@ -36,7 +36,7 @@ router.get("/get/count", adminAuth, async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ status: false, message: err.message, data: null });
+      .json({ status: false, message: err?.message, data: null });
   }
 });
 
