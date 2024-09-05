@@ -8,8 +8,8 @@
 ## Table of contents
 
 - [EShop-API](#EShop-API)
-  - [Prerequisites](#prerequisites)
   - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
   - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Usage](#usage)
