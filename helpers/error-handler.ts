@@ -9,7 +9,7 @@ export const errorHandler = (
   if (err.name === "UnauthorizedError") {
     next(err);
 
-    return res.json({
+    return res.status(401).json({
       status: false,
       message: "The User is not Authorized",
       data: null,
@@ -17,7 +17,11 @@ export const errorHandler = (
   }
 
   if (err.name == "ValidationError") {
-    return res.json({ status: false, message: err?.message, data: null });
+    return res.status(400).json({
+      status: false,
+      message: err?.message,
+      data: null,
+    });
   }
 
   return res.status(401).json({
