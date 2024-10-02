@@ -33,7 +33,11 @@ router.get(`/get-all-users`, adminAuth, async (req: any, res: Response) => {
       },
     });
   } catch (err) {
-    return res.status(500).json();
+    return res.status(500).json({
+      status: false,
+      message: err?.message,
+      data: null,
+    });
   }
 });
 
