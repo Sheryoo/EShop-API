@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { Order } from "../../models/Order";
+import { PrismaClient } from "@prisma/client";
 import { adminAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get("/get/user-orders/:userId", adminAuth, async (req: any, res) => {
   try {
@@ -14,16 +15,24 @@ router.get("/get/user-orders/:userId", adminAuth, async (req: any, res) => {
       filters = {},
     } = req?.query;
     const { userId } = req?.params;
-    const userOrders = await Order?.find({ ...filters, user: userId })
-      ?.limit(+pageSize)
-      ?.skip((+page - 1) * +pageSize)
-      ?.populate([
-        ...populate,
+    const userOrders = await prisma?.order.findMany({
+      where: { ...filters, user: userId },
+      skip: (+page - 1) * +pageSize,
+      take: +pageSize,
+      orderBy: { ...sort, createdAt: "desc" },
+      include: {
+        ...(populate?.includes("orderItems") && {
+          orderItems: {
+            include: {
+              product: { select: { name: true, image: true, price: true } },
+            },
+          },
+        }),
         ...(populate?.includes("user")
-          ? [{ path: "user", select: "name" }]
-          : []),
-      ])
-      ?.sort({ ...sort, dateOrdered: -1 });
+          ? { user: { select: { firstName: true } } }
+          : {}),
+      },
+    });
 
     if (!userOrders) {
       return res
@@ -31,7 +40,9 @@ router.get("/get/user-orders/:userId", adminAuth, async (req: any, res) => {
         .json({ status: false, message: "No orders in your list", data: null });
     }
 
-    const totalEntries = await Order?.countDocuments({ user: userId });
+    const totalEntries = await prisma?.order?.count({
+      where: { user: userId },
+    });
 
     return res.status(200).json({
       status: true,

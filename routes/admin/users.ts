@@ -1,24 +1,27 @@
 import { Router, Response } from "express";
-import { User } from "../../models/User";
+import { PrismaClient } from "@prisma/client";
 import { adminAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get(`/get-all-users`, adminAuth, async (req: any, res: Response) => {
   try {
     const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
 
-    const users = await User?.find({ ...filters })
-      .limit(+pageSize)
-      .skip((+page - 1) * +pageSize)
-      .select("name phone email")
-      .sort({ ...sort, dateCreated: -1 });
+    const users = await prisma?.user?.findMany({
+      where: { ...filters },
+      skip: (+page - 1) * +pageSize,
+      take: +pageSize,
+      select: { firstName: true, lastName: true, phone: true, email: true },
+      orderBy: { ...sort, createdAt: "desc" },
+    });
 
     if (!users) {
       res.json({ status: false, message: "No users in your list", data: null });
     }
 
-    const totalEntries = await User.countDocuments();
+    const totalEntries = await prisma?.user?.count();
 
     res.json({
       status: true,
@@ -43,7 +46,7 @@ router.get(`/get-all-users`, adminAuth, async (req: any, res: Response) => {
 
 router.get("/get/count", adminAuth, async (req, res) => {
   try {
-    const count = await User?.countDocuments();
+    const count = await prisma?.user?.count();
 
     if (!count) {
       res.json({ status: false, message: "No users in your list", data: 0 });

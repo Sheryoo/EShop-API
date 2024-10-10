@@ -2,7 +2,6 @@ import express from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import { config } from "dotenv";
-import mongoose from "mongoose";
 import cors from "cors";
 
 // Load Environment Variables
@@ -14,13 +13,6 @@ import errorHandler from "./helpers/error-handler";
 
 const API_URI = process.env.API_URI;
 const ADMIN_URI = process.env.ADMIN_URI;
-const MongoUrl = process.env.MONGO_URI;
-
-// Database Connection
-mongoose.connect(MongoUrl);
-mongoose.connection.once("open", () => {
-  console.info("Connected to the Database Successfully.");
-});
 
 // Define Express App
 const app = express();

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { Order } from "../../models/Order";
-import { OrderItem } from "../../models/Order-Items";
+import { PrismaClient } from "@prisma/client";
 import { userAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get(`/`, userAuth, async (req: any, res) => {
   try {
@@ -15,17 +15,22 @@ router.get(`/`, userAuth, async (req: any, res) => {
       filters = {},
     } = req?.query;
 
-    const orders = await Order.find({ ...filters })
-      .limit(+pageSize)
-      .skip((+page - 1) * +pageSize)
-      .where("user", req?.auth?.userId)
-      .populate([
-        ...populate,
-        ...(populate?.includes("user")
-          ? [{ path: "user", select: "name" }]
-          : []),
-      ])
-      .sort({ ...sort, dateOrdered: -1 });
+    const orders = await prisma?.order.findMany({
+      where: { ...filters, userId: req?.auth?.userId },
+      include: {
+        ...(populate.includes("orderItems") && {
+          orderItems: {
+            include: {
+              product: { select: { name: true, image: true, price: true } },
+            },
+          },
+        }),
+        user: { select: { firstName: true, lastName: true } },
+      },
+      skip: (+page - 1) * +pageSize,
+      take: +pageSize,
+      orderBy: { ...sort, createdAt: "desc" },
+    });
 
     if (!orders) {
       return res
@@ -33,8 +38,10 @@ router.get(`/`, userAuth, async (req: any, res) => {
         .json({ status: false, message: "No orders in your list", data: null });
     }
 
-    const totalEntries = await Order.countDocuments({
-      user: req?.auth?.userId,
+    const totalEntries = await prisma?.order?.count({
+      where: {
+        userId: req?.auth?.userId,
+      },
     });
 
     return res.status(200).json({
@@ -61,14 +68,20 @@ router.get(`/:id`, userAuth, async (req: any, res) => {
     const { id } = req?.params;
     const { auth } = req;
 
-    const order = await Order.findById(id)
-      .where("user", auth?.userId)
-      .populate("user", "name")
-      .populate({
-        path: "orderItems",
-        populate: { path: "product", populate: "category" },
-      })
-      .sort("dateOrdered");
+    const order = await prisma?.order.findUnique({
+      where: {
+        id: +id,
+        userId: auth?.userId,
+      },
+      include: {
+        user: { select: { firstName: true, lastName: true } },
+        orderItems: {
+          include: {
+            product: { select: { name: true, image: true, price: true } },
+          },
+        },
+      },
+    });
 
     if (!order) {
       return res
@@ -102,27 +115,22 @@ router.post("/", userAuth, async (req: any, res) => {
       status,
     } = req?.body;
 
-    const orderItemsIds = Promise.all(
-      orderItems.map(async (orderItem) => {
-        let newOrderItem = new OrderItem({
-          quantity: orderItem?.quantity,
-          product: orderItem?.product,
+    const orderItemsProducts = Promise.all(
+      orderItems.map(async (orderItem: any) => {
+        const orderItemProduct = await prisma.product.findUnique({
+          where: {
+            id: +orderItem?.product,
+          },
         });
 
-        newOrderItem = await newOrderItem?.save();
-
-        return newOrderItem?._id;
+        return { quantity: +orderItem?.quantity, product: orderItemProduct };
       }),
     );
-    const orderItemsIdsResolved = await orderItemsIds;
+    const orderItemsProductsResolved = await orderItemsProducts;
 
     const totalPrices = await Promise.all(
-      orderItemsIdsResolved.map(async (orderItemId) => {
-        const orderItem: any = await OrderItem?.findById(orderItemId).populate(
-          "product",
-          "price",
-        );
-        const totalPrice = +orderItem?.quantity * +orderItem?.product?.price;
+      orderItemsProductsResolved.map(async (item) => {
+        const totalPrice = +item?.quantity * +item?.product?.price;
 
         return totalPrice;
       }),
@@ -130,20 +138,38 @@ router.post("/", userAuth, async (req: any, res) => {
 
     const totalPrice = totalPrices?.reduce((a, b) => a + b, 0);
 
-    const order = new Order({
-      orderItems: orderItemsIdsResolved,
-      shippingAddress1,
-      shippingAddress2,
-      city,
-      zip,
-      country,
-      phone,
-      status,
-      totalPrice: totalPrice,
-      user: userId,
+    const order = await prisma?.order.create({
+      data: {
+        shippingAddress1,
+        shippingAddress2,
+        city,
+        zip,
+        country,
+        phone,
+        status,
+        totalPrice: totalPrice,
+        userId: userId,
+        paymentStatus: "NOT_PAID",
+      },
     });
 
-    await order.save();
+    for (const item of orderItemsProductsResolved) {
+      prisma?.orderItems
+        .create({
+          data: {
+            quantity: item?.quantity,
+            orderId: order?.id,
+            productId: item?.product?.id,
+          },
+        })
+        .catch((err) => {
+          return res.status(500).json({
+            status: false,
+            message: err,
+            data: null,
+          });
+        });
+    }
 
     if (!order)
       return res.status(400).json({
@@ -158,6 +184,8 @@ router.post("/", userAuth, async (req: any, res) => {
       data: order,
     });
   } catch (err) {
+    console.error(err);
+
     return res.status(500).json({
       status: false,
       message: err,
@@ -171,13 +199,14 @@ router.put("/update/:id", userAuth, async (req, res) => {
     const { id } = req?.params;
     const { status } = req?.body;
 
-    const order = await Order?.findByIdAndUpdate(
-      id,
-      {
+    const order = await prisma?.order?.update({
+      where: {
+        id: +id,
+      },
+      data: {
         status,
       },
-      { new: true },
-    );
+    });
 
     if (!order)
       return res
@@ -199,12 +228,20 @@ router.put("/update/:id", userAuth, async (req, res) => {
 router.delete("/:id", userAuth, async (req: any, res) => {
   try {
     const { id } = req?.params;
-    Order.findByIdAndDelete(id)
-      .where("user", req?.auth?.userId)
+    prisma.order
+      .delete({
+        where: {
+          id: +id,
+          userId: req?.auth?.userId,
+        },
+        include: {
+          orderItems: true,
+        },
+      })
       .then(async (order) => {
         if (order) {
           await order.orderItems.map(async (orderItem) => {
-            await OrderItem.findByIdAndDelete(orderItem);
+            await prisma.orderItems.delete({ where: { id: orderItem?.id } });
           });
 
           return res.status(200).json({
@@ -225,16 +262,16 @@ router.delete("/:id", userAuth, async (req: any, res) => {
   }
 });
 
-router.get("/get/total-sales", userAuth, async (req, res) => {
+router.get("/get/total-sales", userAuth, async (req: any, res) => {
   try {
-    const totalSales = await Order?.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalSales: { $sum: "$totalPrice" },
-        },
+    const totalSales = await prisma?.order.aggregate({
+      _sum: {
+        totalPrice: true,
       },
-    ]);
+      where: {
+        userId: req?.auth?.userId,
+      },
+    });
 
     if (!totalSales) {
       return res
@@ -245,7 +282,7 @@ router.get("/get/total-sales", userAuth, async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Total Sales Fetched Successfully",
-      data: totalSales?.pop()?.totalSales,
+      data: totalSales?._sum?.totalPrice,
     });
   } catch (err) {
     return res
@@ -256,10 +293,11 @@ router.get("/get/total-sales", userAuth, async (req, res) => {
 
 router.get("/get/count", userAuth, async (req: any, res) => {
   try {
-    const orderCount = await Order?.countDocuments()?.where(
-      "user",
-      req?.auth?.userId,
-    );
+    const orderCount = await prisma?.order?.count({
+      where: {
+        userId: req?.auth?.userId,
+      },
+    });
 
     if (!orderCount) {
       return res
