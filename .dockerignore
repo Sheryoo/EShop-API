@@ -122,3 +122,13 @@ types/generated
 ############################
 yalc.lock
 .yalc
+
+############################
+# UNNECESSARY FILES
+.eslintrc.js
+.gitignore
+.nvmrc
+.prettierignore
+.prettierrc.js
+k6-test.js
+README.md
