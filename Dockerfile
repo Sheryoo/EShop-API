@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN yarn
 
 COPY . .
 
@@ -20,4 +20,4 @@ RUN sh -c 'source .env && \
 
 EXPOSE 3030
 
-CMD ["npm", "start"]
+CMD ["yarn", "start"]
