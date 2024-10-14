@@ -9,12 +9,11 @@
     "format:fix": "prettier \"(*.{js,ts,jsx,tsx,json})|(**/*.{js,ts,jsx,tsx,json})\" --write",
     "type:check": "tsc --noEmit",
     "build": "tsc",
-    "start": "prisma generate && yarn build && node dist/app.js",
-    "develop": "prisma generate && tsc-watch --onSuccess \"node dist/app.js\"",
+    "start": "prisma generate && prisma migrate dev && yarn build && node dist/app.js",
+    "develop": "prisma generate && prisma migrate dev && tsc-watch --onSuccess \"node dist/app.js\"",
     "husky": "INIT_HUSKY=1 && husky",
     "prisma": "prisma",
-    "migrate-dev:docker": "docker exec eshop npx prisma migrate dev",
-    "prisma-studio:docker": "docker exec eshop npx prisma studio"
+    "prisma-studio": "prisma studio --port 3031"
   },
   "author": "Sheryoo0",
   "license": "MIT",

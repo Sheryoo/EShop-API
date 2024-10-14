@@ -41,5 +41,8 @@ app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
 app.use(errorHandler);
 
 app.listen(3030, () => {
+  console.info(
+    "Run : 'yarn prisma-studio' in docker terminal to activate prisma studio",
+  );
   console.info("The server is running on : http://localhost:3030/");
 });
