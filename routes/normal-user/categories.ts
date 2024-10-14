@@ -1,17 +1,20 @@
 import { Router } from "express";
-import { Category } from "../../models/Category";
+import { PrismaClient } from "@prisma/client";
 import { userAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get(`/all`, userAuth, async (req: any, res) => {
   try {
     const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
 
-    const categories = await Category?.find({ ...filters })
-      .limit(+pageSize)
-      .skip((+page - 1) * +pageSize)
-      .sort({ ...sort, dateCreated: -1 });
+    const categories = await prisma?.category?.findMany({
+      where: filters,
+      skip: (+page - 1) * +pageSize,
+      take: +pageSize,
+      orderBy: { ...sort, createdAt: "desc" },
+    });
 
     if (!categories) {
       return res.status(403).json({
@@ -21,7 +24,7 @@ router.get(`/all`, userAuth, async (req: any, res) => {
       });
     }
 
-    const totalEntries = await Category?.countDocuments();
+    const totalEntries = await prisma?.category?.count();
 
     return res.status(200).json({
       status: true,
@@ -45,7 +48,7 @@ router.get(`/all`, userAuth, async (req: any, res) => {
 router.get(`/:id`, userAuth, async (req, res) => {
   try {
     const { id } = req?.params;
-    const category = await Category?.findById(id);
+    const category = await prisma?.category?.findUnique({ where: { id: +id } });
 
     if (!category) {
       return res.status(403).json({

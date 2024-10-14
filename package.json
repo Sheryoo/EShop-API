@@ -1,7 +1,7 @@
 {
   "name": "my-e-shop-api",
   "version": "2.0.1",
-  "description": "An E-commerce API with Node.js and MongoDB",
+  "description": "An E-commerce API with Node.js and Prisma",
   "scripts": {
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix",
@@ -9,13 +9,16 @@
     "format:fix": "prettier \"(*.{js,ts,jsx,tsx,json})|(**/*.{js,ts,jsx,tsx,json})\" --write",
     "type:check": "tsc --noEmit",
     "build": "tsc",
-    "start": "yarn build && node dist/app.js",
-    "develop": "tsc-watch --onSuccess \"node dist/app.js\"",
-    "husky": "INIT_HUSKY=1 && husky"
+    "start": "prisma generate && prisma migrate dev && yarn build && node dist/app.js",
+    "develop": "prisma generate && prisma migrate dev && tsc-watch --onSuccess \"node dist/app.js\"",
+    "husky": "INIT_HUSKY=1 && husky",
+    "prisma": "prisma",
+    "prisma-studio": "prisma studio --port 3031"
   },
   "author": "Sheryoo0",
   "license": "MIT",
   "dependencies": {
+    "@prisma/client": "^5.20.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cloudinary": "^2.5.1",
@@ -23,9 +26,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-jwt": "^8.4.1",
+    "express-rate-limit": "^7.4.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.7.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "streamifier": "^0.1.1"
@@ -41,6 +44,7 @@
     "globals": "^15.11.0",
     "husky": "^9.1.6",
     "prettier": "^3.2.5",
+    "prisma": "^5.20.0",
     "tsc-watch": "^6.2.0",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.8.1"
@@ -48,5 +52,8 @@
   "engines": {
     "node": ">=18.0.0 <=20.x.x",
     "npm": ">=6.0.0"
+  },
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
   }
 }

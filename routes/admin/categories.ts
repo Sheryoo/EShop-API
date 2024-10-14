@@ -1,5 +1,5 @@
+import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
-import { Category } from "../../models/Category";
 import { adminAuth } from "../../helpers/jwt_Auth";
 import {
   uploadToCloudinary,
@@ -7,6 +7,7 @@ import {
 } from "../../helpers/upload_files";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.post(
   "/",
@@ -26,12 +27,13 @@ router.post(
 
       const uploadedFileUrl = await uploadToCloudinary(req?.file, "icons");
 
-      const category = new Category({
-        name,
-        icon: uploadedFileUrl,
-        labelColor,
+      const newCategory = await prisma?.category?.create({
+        data: {
+          name,
+          icon: uploadedFileUrl,
+          labelColor,
+        },
       });
-      const newCategory = await category?.save();
 
       if (!newCategory) {
         return res.status(400).json({
@@ -57,7 +59,11 @@ router.post(
 router.delete("/:id", adminAuth, async (req, res) => {
   try {
     const { id } = req?.params;
-    const category = await Category?.findByIdAndDelete(id);
+    const category = await prisma?.category?.delete({
+      where: {
+        id: +id,
+      },
+    });
 
     if (!category) {
       return res
@@ -90,15 +96,16 @@ router.put(
         uploadedFileUrl = await uploadToCloudinary(req?.file, "icons");
       }
 
-      const category = await Category.findByIdAndUpdate(
-        id,
-        {
+      const category = await prisma?.category?.update({
+        where: {
+          id: +id,
+        },
+        data: {
           name,
           ...(uploadedFileUrl && { icon: uploadedFileUrl }),
           labelColor,
         },
-        { new: true },
-      );
+      });
 
       if (!category) {
         return res

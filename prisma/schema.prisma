@@ -1,0 +1,114 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  image     String?  @default("https://cdn-icons-png.freepik.com/512/3033/3033143.png")
+  gender    Genders
+  phone     String
+  isAdmin   Boolean  @default(false)
+  zip       String?
+  apartment String?
+  street    String?
+  city      String?
+  country   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  order Order[]
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String
+  richDescription String   @default("")
+  image           String   @default("")
+  images          String[] @default([])
+  brand           String   @default("")
+  price           Float
+  category        Category @relation(fields: [categoryId], references: [id])
+  categoryId      Int      @unique
+  countInStock    Int
+  rating          Float    @default(0)
+  numReviews      Int      @default(0)
+  isFeatured      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+
+  orderItems OrderItems[]
+}
+
+model Category {
+  id         Int       @id @default(autoincrement())
+  name       String
+  icon       String?
+  labelColor String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+  product    Product[]
+}
+
+model Order {
+  id               Int           @id @default(autoincrement())
+  shippingAddress1 String
+  shippingAddress2 String?
+  city             String
+  zip              String
+  country          String
+  phone            String
+  status           ORDERSTATUS   @default(NEW)
+  totalPrice       Float
+  user             User          @relation(fields: [userId], references: [id])
+  userId           Int           @unique
+  paymentStatus    PAYMENTSTATUS @default(NOT_PAID)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now())
+
+  orderItems OrderItems[]
+}
+
+model OrderItems {
+  id        Int     @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int     @unique
+  quantity  Int
+
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int   @unique
+}
+
+enum Genders {
+  M
+  F
+  O
+}
+
+enum ORDERSTATUS {
+  NEW
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELED
+  RETURNED
+}
+
+enum PAYMENTSTATUS {
+  NOT_PAID
+  PAID
+  PARTIALLY_PAID
+  FULLY_REFUNDED
+  PARTIALLY_REFUNDED
+  CANCELLED
+}

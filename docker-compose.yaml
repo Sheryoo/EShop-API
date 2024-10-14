@@ -2,10 +2,24 @@ version: "3"
 services:
   eshop:
     build: .
+    container_name: eshop
     ports:
       - "3030:3030"
+      - "3031:3031"
     env_file:
       - .env
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=sherifzayan55
+      - POSTGRES_DB=eshop
+      - POSTGRES_USER=sherifshaaban
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - db-data:/data
 
 volumes:
   db-data:
