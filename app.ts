@@ -3,7 +3,6 @@ import morgan from "morgan";
 import helmet from "helmet";
 import { config } from "dotenv";
 import cors from "cors";
-import path from "path";
 
 // Load Environment Variables
 config();
@@ -39,9 +38,6 @@ app.use(`${ADMIN_URI}/users`, adminRoutes.userRouter);
 app.use(`${ADMIN_URI}/categories`, adminRoutes.categoryRouter);
 app.use(`${ADMIN_URI}/orders`, adminRoutes.orderRouter);
 app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
-
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
 
 // Error Handler for not found routes
 app.use(errorHandler);
