@@ -245,18 +245,6 @@
     "@types/node" "*"
     "@types/send" "*"
 
-"@types/webidl-conversions@*":
-  version "7.0.3"
-  resolved "https://registry.yarnpkg.com/@types/webidl-conversions/-/webidl-conversions-7.0.3.tgz#1306dbfa53768bcbcfc95a1c8cde367975581859"
-  integrity sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==
-
-"@types/whatwg-url@^11.0.2":
-  version "11.0.5"
-  resolved "https://registry.yarnpkg.com/@types/whatwg-url/-/whatwg-url-11.0.5.tgz#aaa2546e60f0c99209ca13360c32c78caf2c409f"
-  integrity sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==
-  dependencies:
-    "@types/webidl-conversions" "*"
-
 "@typescript-eslint/eslint-plugin@8.8.1":
   version "8.8.1"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.8.1.tgz#9364b756d4d78bcbdf6fd3e9345e6924c68ad371"

@@ -136,14 +136,14 @@ router.post("/login", async (req, res) => {
           data: token,
         });
       } else {
-        res.json({
+        res.status(400).json({
           status: false,
           message: "Wrong Password",
           data: null,
         });
       }
     } else {
-      res.json({
+      res.status(400).json({
         status: false,
         message: "User not found",
         data: null,
