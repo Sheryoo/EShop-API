@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { User } from "../../models/User";
+import { PrismaClient } from "@prisma/client";
 import bcrycpt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { userAuth } from "../../helpers/jwt_Auth";
@@ -8,12 +8,14 @@ import uploadFilesMiddleware, {
 } from "../../helpers/upload_files";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get(`/:id`, userAuth, async (req, res) => {
   try {
-    const user = await User?.findById(req?.params?.id)?.select(
-      "name phone email",
-    );
+    const user = await prisma?.user?.findUnique({
+      where: { id: +req?.params?.id },
+      select: { firstName: true, lastName: true, phone: true, email: true },
+    });
 
     if (!user) {
       return res.json({
@@ -65,28 +67,28 @@ router.post(
         uploadedFileUrl = await uploadToCloudinary(file, "users");
       }
 
-      const user = new User({
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        phone,
-        gender,
-        isAdmin,
-        street,
-        apartment,
-        city,
-        zip,
-        country,
-        image: uploadedFileUrl,
+      const createdUser = await prisma?.user?.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword,
+          phone,
+          gender,
+          isAdmin,
+          street,
+          apartment,
+          city,
+          zip,
+          country,
+          image: uploadedFileUrl,
+        },
       });
 
-      const createdUser = await user?.save();
-
       const payload = {
-        userId: user?.id,
-        email: user?.email,
-        isAdmin: user?.isAdmin,
+        userId: createdUser?.id,
+        email: createdUser?.email,
+        isAdmin: createdUser?.isAdmin,
       };
       const token = jwt?.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "30d",
@@ -109,7 +111,9 @@ router.post(
 
 router.post("/login", async (req, res) => {
   try {
-    const user = await User.findOne({ email: req?.body?.email });
+    const user = await prisma?.user?.findUnique({
+      where: { email: req?.body?.email },
+    });
 
     if (user) {
       const isMatch = await bcrycpt.compare(
@@ -132,14 +136,14 @@ router.post("/login", async (req, res) => {
           data: token,
         });
       } else {
-        res.json({
+        res.status(400).json({
           status: false,
           message: "Wrong Password",
           data: null,
         });
       }
     } else {
-      res.json({
+      res.status(400).json({
         status: false,
         message: "User not found",
         data: null,

@@ -1,24 +1,23 @@
 import { Router } from "express";
-import Product from "../../models/Product";
+import { PrismaClient } from "@prisma/client";
 import { userAuth } from "../../helpers/jwt_Auth";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 router.get("/", userAuth, async (req: any, res) => {
   try {
-    let filter = {};
-    const { categories } = req?.query;
-    const { page = 1, pageSize = 10, sort = {} } = req?.query;
+    const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
 
-    if (categories) {
-      filter = { category: categories?.toString()?.split(",") };
-    }
-
-    const products = await Product.find(filter)
-      ?.populate("category")
-      .limit(+pageSize)
-      .skip((+page - 1) * +pageSize)
-      .sort({ ...sort, dateCreated: -1 });
+    const products = await prisma?.product?.findMany({
+      where: filters,
+      skip: (+page - 1) * +pageSize,
+      take: +pageSize,
+      orderBy: { ...sort, createdAt: "desc" },
+      include: {
+        category: true,
+      },
+    });
 
     if (!products) {
       return res.status(500).json({
@@ -28,7 +27,7 @@ router.get("/", userAuth, async (req: any, res) => {
       });
     }
 
-    const totalEntries = await Product.countDocuments(filter);
+    const totalEntries = await prisma?.product?.count({ where: filters });
 
     return res.status(200).json({
       status: true,
@@ -49,9 +48,12 @@ router.get("/", userAuth, async (req: any, res) => {
   }
 });
 
-router.get("/:id", userAuth, async (req, res) => {
+router.get("/:id", userAuth, async (req: any, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("category");
+    const product = await prisma?.product?.findUnique({
+      where: { ...req?.query?.filters, id: +req.params.id },
+      include: { category: true },
+    });
 
     if (!product) {
       return res.status(500).json({
@@ -73,9 +75,11 @@ router.get("/:id", userAuth, async (req, res) => {
   }
 });
 
-router.get("/get/count", userAuth, async (req, res) => {
+router.get("/get/count", userAuth, async (req: any, res) => {
   try {
-    const count = await Product?.countDocuments();
+    const count = await prisma?.product?.count({
+      where: { ...req?.query?.filters },
+    });
 
     if (!count) {
       return res.status(500).json({
@@ -97,10 +101,13 @@ router.get("/get/count", userAuth, async (req, res) => {
   }
 });
 
-router.get("/get/featured/:count", userAuth, async (req, res) => {
+router.get("/get/featured/:count", userAuth, async (req: any, res) => {
   try {
     const count = req?.params?.count ? parseInt(req?.params?.count) : 0;
-    const products = await Product?.find({ isFeatured: true })?.limit(count);
+    const products = await prisma?.product?.findMany({
+      where: { ...req?.query?.filters, isFeatured: true },
+      take: count,
+    });
 
     if (!products) {
       return res.status(500).json({

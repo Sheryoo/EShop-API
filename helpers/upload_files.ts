@@ -46,8 +46,9 @@ export const uploadToCloudinary = async (file, folderName) => {
           {
             folder: `e-commerce/${folderName}`,
             use_filename: true,
-            unique_filename: true,
-            public_id: file.filename,
+            unique_filename: false,
+            public_id: file?.originalname,
+            overwrite: true,
           },
           async (error, result) => {
             if (error) {
