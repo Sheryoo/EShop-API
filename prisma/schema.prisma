@@ -39,7 +39,7 @@ model Product {
   brand           String   @default("")
   price           Float
   category        Category @relation(fields: [categoryId], references: [id])
-  categoryId      Int      @unique
+  categoryId      Int
   countInStock    Int
   rating          Float    @default(0)
   numReviews      Int      @default(0)
@@ -71,7 +71,7 @@ model Order {
   status           ORDERSTATUS   @default(NEW)
   totalPrice       Float
   user             User          @relation(fields: [userId], references: [id])
-  userId           Int           @unique
+  userId           Int
   paymentStatus    PAYMENTSTATUS @default(NOT_PAID)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @default(now())
@@ -82,11 +82,11 @@ model Order {
 model OrderItems {
   id        Int     @id @default(autoincrement())
   product   Product @relation(fields: [productId], references: [id])
-  productId Int     @unique
+  productId Int
   quantity  Int
 
   order   Order @relation(fields: [orderId], references: [id])
-  orderId Int   @unique
+  orderId Int
 }
 
 enum Genders {
