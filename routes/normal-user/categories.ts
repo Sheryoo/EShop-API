@@ -45,10 +45,12 @@ router.get(`/all`, userAuth, async (req: any, res) => {
   }
 });
 
-router.get(`/:id`, userAuth, async (req, res) => {
+router.get(`/:id`, userAuth, async (req: any, res) => {
   try {
     const { id } = req?.params;
-    const category = await prisma?.category?.findUnique({ where: { id: +id } });
+    const category = await prisma?.category?.findUnique({
+      where: { ...req?.query?.filters, id: +id },
+    });
 
     if (!category) {
       return res.status(403).json({

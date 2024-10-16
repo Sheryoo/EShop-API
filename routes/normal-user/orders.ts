@@ -70,6 +70,7 @@ router.get(`/:id`, userAuth, async (req: any, res) => {
 
     const order = await prisma?.order.findUnique({
       where: {
+        ...req?.query?.filters,
         id: +id,
         userId: auth?.userId,
       },

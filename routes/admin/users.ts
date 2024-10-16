@@ -10,7 +10,7 @@ router.get(`/get-all-users`, adminAuth, async (req: any, res: Response) => {
     const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
 
     const users = await prisma?.user?.findMany({
-      where: { ...filters },
+      where: filters,
       skip: (+page - 1) * +pageSize,
       take: +pageSize,
       select: { firstName: true, lastName: true, phone: true, email: true },
@@ -44,9 +44,11 @@ router.get(`/get-all-users`, adminAuth, async (req: any, res: Response) => {
   }
 });
 
-router.get("/get/count", adminAuth, async (req, res) => {
+router.get("/get/count", adminAuth, async (req: any, res) => {
   try {
-    const count = await prisma?.user?.count();
+    const count = await prisma?.user?.count({
+      where: { ...req?.query?.filters },
+    });
 
     if (!count) {
       res.json({ status: false, message: "No users in your list", data: 0 });

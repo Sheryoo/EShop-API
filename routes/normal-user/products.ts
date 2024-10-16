@@ -7,16 +7,10 @@ const prisma = new PrismaClient();
 
 router.get("/", userAuth, async (req: any, res) => {
   try {
-    let filter = {};
-    const { categories } = req?.query;
-    const { page = 1, pageSize = 10, sort = {} } = req?.query;
-
-    if (categories) {
-      filter = { category: categories?.toString()?.split(",") };
-    }
+    const { page = 1, pageSize = 10, sort = {}, filters = {} } = req?.query;
 
     const products = await prisma?.product?.findMany({
-      where: filter,
+      where: filters,
       skip: (+page - 1) * +pageSize,
       take: +pageSize,
       orderBy: { ...sort, createdAt: "desc" },
@@ -33,7 +27,7 @@ router.get("/", userAuth, async (req: any, res) => {
       });
     }
 
-    const totalEntries = await prisma?.product?.count({ where: filter });
+    const totalEntries = await prisma?.product?.count({ where: filters });
 
     return res.status(200).json({
       status: true,
@@ -54,10 +48,10 @@ router.get("/", userAuth, async (req: any, res) => {
   }
 });
 
-router.get("/:id", userAuth, async (req, res) => {
+router.get("/:id", userAuth, async (req: any, res) => {
   try {
     const product = await prisma?.product?.findUnique({
-      where: { id: +req.params.id },
+      where: { ...req?.query?.filters, id: +req.params.id },
       include: { category: true },
     });
 
@@ -81,9 +75,11 @@ router.get("/:id", userAuth, async (req, res) => {
   }
 });
 
-router.get("/get/count", userAuth, async (req, res) => {
+router.get("/get/count", userAuth, async (req: any, res) => {
   try {
-    const count = await prisma?.product?.count();
+    const count = await prisma?.product?.count({
+      where: { ...req?.query?.filters },
+    });
 
     if (!count) {
       return res.status(500).json({
@@ -105,11 +101,11 @@ router.get("/get/count", userAuth, async (req, res) => {
   }
 });
 
-router.get("/get/featured/:count", userAuth, async (req, res) => {
+router.get("/get/featured/:count", userAuth, async (req: any, res) => {
   try {
     const count = req?.params?.count ? parseInt(req?.params?.count) : 0;
     const products = await prisma?.product?.findMany({
-      where: { isFeatured: true },
+      where: { ...req?.query?.filters, isFeatured: true },
       take: count,
     });
 
