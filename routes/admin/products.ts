@@ -40,7 +40,7 @@ router.post(
           .json({ status: false, message: "Invalid Category", data: null });
       }
 
-      const file = req?.file;
+      const file = req?.files[0];
 
       if (!file) {
         return res
@@ -48,12 +48,17 @@ router.post(
           .json({ status: false, message: "No File Uploaded.", data: null });
       }
 
-      const uploadedFileUrl = await uploadToCloudinary(req?.file, "products");
+      const images = [];
+
+      for (const image of req?.files) {
+        images.push(await uploadToCloudinary(image, "products"));
+      }
 
       const createdProduct = await prisma?.product?.create({
         data: {
           name: name,
-          image: uploadedFileUrl,
+          image: images[0],
+          images: images,
           countInStock: +countInStock,
           description: description,
           richDescription: richDescription,
@@ -62,7 +67,7 @@ router.post(
           categoryId: category.id,
           rating: +rating,
           numReviews: +numReviews,
-          isFeatured: isFeatured,
+          isFeatured: isFeatured === "true" ? true : false,
         },
       });
 
