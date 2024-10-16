@@ -26,7 +26,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  order Order[]
+  orders Order[]
+
+  checkouts checkout[]
 }
 
 model Product {
@@ -57,7 +59,7 @@ model Category {
   labelColor String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now())
-  product    Product[]
+  products   Product[]
 }
 
 model Order {
@@ -75,8 +77,11 @@ model Order {
   paymentStatus    PAYMENTSTATUS @default(NOT_PAID)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @default(now())
+  paymentMethod    String        @default("CASH_ON_DELIVERY")
 
   orderItems OrderItems[]
+
+  checkouts checkout[]
 }
 
 model OrderItems {
@@ -87,6 +92,21 @@ model OrderItems {
 
   order   Order @relation(fields: [orderId], references: [id])
   orderId Int
+}
+
+model checkout {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int
+
+  paymentMethod String        @default("CASH_ON_DELIVERY")
+  paymentStatus PAYMENTSTATUS @default(NOT_PAID)
+  totalPrice    Float
+
+  status CHECKOUTSTATUS @default(NEW)
 }
 
 enum Genders {
@@ -111,4 +131,11 @@ enum PAYMENTSTATUS {
   FULLY_REFUNDED
   PARTIALLY_REFUNDED
   CANCELLED
+}
+
+enum CHECKOUTSTATUS {
+  NEW
+  PENDING
+  COMPLETED
+  FAILED
 }

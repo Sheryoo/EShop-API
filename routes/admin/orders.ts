@@ -41,7 +41,7 @@ router.get("/get/user-orders/:userId", adminAuth, async (req: any, res) => {
     }
 
     const totalEntries = await prisma?.order?.count({
-      where: { user: userId },
+      where: { ...filters, user: userId },
     });
 
     return res.status(200).json({

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import { userAuth } from "../../helpers/jwt_Auth";
+import Stripe from "stripe";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -25,7 +26,10 @@ router.get(`/`, userAuth, async (req: any, res) => {
             },
           },
         }),
-        user: { select: { firstName: true, lastName: true } },
+        ...(populate.includes("checkout") && { checkout: true }),
+        ...(populate.includes("user") && {
+          user: { select: { firstName: true, lastName: true } },
+        }),
       },
       skip: (+page - 1) * +pageSize,
       take: +pageSize,
@@ -81,6 +85,7 @@ router.get(`/:id`, userAuth, async (req: any, res) => {
             product: { select: { name: true, image: true, price: true } },
           },
         },
+        checkouts: true,
       },
     });
 
@@ -114,11 +119,14 @@ router.post("/", userAuth, async (req: any, res) => {
       country,
       phone,
       status,
+      paymentMethod,
+      successUrl,
+      cancelUrl,
     } = req?.body;
 
     const orderItemsProducts = Promise.all(
       orderItems.map(async (orderItem: any) => {
-        const orderItemProduct = await prisma.product.findUnique({
+        const orderItemProduct = await prisma?.product?.findUnique({
           where: {
             id: +orderItem?.product,
           },
@@ -151,6 +159,15 @@ router.post("/", userAuth, async (req: any, res) => {
         totalPrice: totalPrice,
         userId: userId,
         paymentStatus: "NOT_PAID",
+        paymentMethod: paymentMethod || "CASH_ON_DELIVERY",
+      },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        orderItems: {
+          include: {
+            product: { select: { name: true, image: true, price: true } },
+          },
+        },
       },
     });
 
@@ -179,7 +196,55 @@ router.post("/", userAuth, async (req: any, res) => {
         data: null,
       });
 
-    return res.json({
+    if (paymentMethod !== "CASH_ON_DELIVERY") {
+      const checkout = await prisma?.checkout?.create({
+        data: {
+          totalPrice: totalPrice,
+          orderId: order?.id,
+          paymentMethod: paymentMethod,
+          userId: userId,
+        },
+      });
+
+      const lineItems: any = order?.orderItems?.map((item) => {
+        return {
+          price_data: {
+            currency: "egp",
+            product_data: {
+              name: item?.product?.name,
+              images: [item?.product?.image],
+            },
+            unit_amount: item?.product?.price * 100,
+          },
+          quantity: item?.quantity,
+        };
+      });
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+      const session = await stripe.checkout.sessions.create({
+        currency: "egp",
+        mode: "payment",
+        line_items: lineItems,
+        payment_method_types: [paymentMethod],
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        customer_email: order?.user?.email,
+        metadata: {
+          orderId: order?.id,
+          userId: userId,
+          checkoutId: checkout?.id,
+        },
+      });
+
+      return res.status(200).json({
+        status: true,
+        message: "Order created successfully",
+        data: session.url,
+      });
+    }
+
+    return res.status(200).json({
       status: true,
       message: "Order created successfully",
       data: order,
@@ -195,17 +260,16 @@ router.post("/", userAuth, async (req: any, res) => {
   }
 });
 
-router.put("/update/:id", userAuth, async (req, res) => {
+router.put("/cancel/:id", userAuth, async (req, res) => {
   try {
     const { id } = req?.params;
-    const { status } = req?.body;
 
     const order = await prisma?.order?.update({
       where: {
         id: +id,
       },
       data: {
-        status,
+        status: "CANCELED",
       },
     });
 
@@ -216,7 +280,7 @@ router.put("/update/:id", userAuth, async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      message: "Order updated successfully",
+      message: "Order canceled successfully",
       data: order,
     });
   } catch (err) {
@@ -229,7 +293,7 @@ router.put("/update/:id", userAuth, async (req, res) => {
 router.delete("/:id", userAuth, async (req: any, res) => {
   try {
     const { id } = req?.params;
-    prisma.order
+    prisma?.order
       .delete({
         where: {
           id: +id,
@@ -242,7 +306,7 @@ router.delete("/:id", userAuth, async (req: any, res) => {
       .then(async (order) => {
         if (order) {
           await order.orderItems.map(async (orderItem) => {
-            await prisma.orderItems.delete({ where: { id: orderItem?.id } });
+            await prisma?.orderItems?.delete({ where: { id: orderItem?.id } });
           });
 
           return res.status(200).json({

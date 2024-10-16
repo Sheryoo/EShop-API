@@ -32,12 +32,14 @@ app.use(`${API_URI}/products`, normalUserRoutes.productRouter);
 app.use(`${API_URI}/users`, normalUserRoutes.userRouter);
 app.use(`${API_URI}/categories`, normalUserRoutes.categoryRouter);
 app.use(`${API_URI}/orders`, normalUserRoutes.orderRouter);
+app.use(`${API_URI}/checkouts`, normalUserRoutes.checkoutRouter);
 
 // Admin Routes
 app.use(`${ADMIN_URI}/products`, adminRoutes.productRouter);
 app.use(`${ADMIN_URI}/users`, adminRoutes.userRouter);
 app.use(`${ADMIN_URI}/categories`, adminRoutes.categoryRouter);
 app.use(`${ADMIN_URI}/orders`, adminRoutes.orderRouter);
+app.use(`${ADMIN_URI}/checkouts`, adminRoutes.checkoutRouter);
 app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
 
 // Error Handler for not found routes
